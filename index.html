@@ -1,0 +1,1970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rama SDA Primary School - Exam Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        'school-green': '#22c55e'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { margin: 0; padding: 20px; }
+            .page-break { page-break-after: always; }
+        }
+        .print-only { display: none; }
+        
+        .dark .bg-white { background-color: #1f2937; }
+        .dark .bg-gray-50 { background-color: #111827; }
+        .dark .bg-gray-100 { background-color: #1f2937; }
+        .dark .text-black { color: #f9fafb; }
+        .dark .text-gray-600 { color: #d1d5db; }
+        .dark .text-gray-700 { color: #e5e7eb; }
+        .dark .text-gray-800 { color: #f3f4f6; }
+        .dark .border-gray-200 { border-color: #374151; }
+        .dark .border-gray-300 { border-color: #4b5563; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="fixed inset-0 bg-primary flex items-center justify-center z-50">
+        <div class="text-center text-white">
+            <img src="https://pfst.cf2.poecdn.net/base/image/a155debe19d01ae67292b8a930047cc3911675d503421d2c07cf7a2f73a6ab84?w=1024&h=1536" alt="School Logo" class="w-32 h-32 mx-auto mb-4 rounded-full">
+            <h1 class="text-2xl font-bold mb-2">RAMA SDA PRIMARY SCHOOL</h1>
+            <p class="text-lg mb-4">Exam Management System</p>
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
+        </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center hidden">
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md">
+            <div class="text-center mb-8">
+                <img src="https://pfst.cf2.poecdn.net/base/image/a155debe19d01ae67292b8a930047cc3911675d503421d2c07cf7a2f73a6ab84?w=1024&h=1536" alt="School Logo" class="w-20 h-20 mx-auto mb-4 rounded-full">
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-white">RAMA SDA PRIMARY SCHOOL</h1>
+                <p class="text-gray-600 dark:text-gray-300">P.O. BOX 45-50201, CHEPTAIS</p>
+                <p class="text-primary font-semibold">IN GOD WE CAN</p>
+            </div>
+            
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">User Type</label>
+                    <select id="userType" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="admin">Administrator</option>
+                        <option value="teacher">Teacher</option>
+                        <option value="parent">Parent</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Username</label>
+                    <input type="text" id="username" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
+                    <input type="password" id="password" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                
+                <button type="submit" class="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/90 transition duration-200">
+                    Login
+                </button>
+            </form>
+            
+            <div class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                <p><strong>Demo Credentials:</strong></p>
+                <p>Admin: admin / admin123</p>
+                <p>Teacher: teacher / teacher123</p>
+                <p>Parent: parent / parent123</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" class="hidden">
+        <!-- Header -->
+        <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 no-print">
+            <div class="px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <div class="flex items-center space-x-4">
+                        <img src="https://pfst.cf2.poecdn.net/base/image/a155debe19d01ae67292b8a930047cc3911675d503421d2c07cf7a2f73a6ab84?w=1024&h=1536" alt="School Logo" class="w-12 h-12 rounded-full">
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-800 dark:text-white">RAMA SDA PRIMARY SCHOOL</h1>
+                            <p class="text-sm text-gray-600 dark:text-gray-300">Exam Management System</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <span id="userInfo" class="text-sm text-gray-600 dark:text-gray-300"></span>
+                        <button id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-200">
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="bg-primary text-white no-print">
+            <div class="px-4 sm:px-6 lg:px-8">
+                <div class="flex space-x-1 overflow-x-auto" id="navigationTabs">
+                    <!-- Navigation tabs will be dynamically generated -->
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-4 sm:p-6 lg:p-8">
+            <div id="contentArea">
+                <!-- Content will be dynamically loaded here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Print Styles -->
+    <style>
+        @media print {
+            body { font-size: 12px; line-height: 1.3; }
+            .report-card { width: 210mm; min-height: 297mm; padding: 20px; margin: 0; }
+            .marksheet { width: 297mm; min-height: 210mm; padding: 15px; margin: 0; }
+            .broadsheet { width: 297mm; padding: 15px; margin: 0; }
+            table { border-collapse: collapse; width: 100%; }
+            th, td { border: 1px solid #000; padding: 4px; text-align: left; }
+            .school-header { text-align: center; margin-bottom: 20px; }
+            .school-logo { width: 60px; height: 60px; }
+        }
+    </style>
+
+    <script>
+        // Dark mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Global variables
+        let currentUser = null;
+        let currentTab = 'dashboard';
+        
+        // Data storage with cloud persistence
+        let schoolData = {
+            users: {
+                admin: { username: 'admin', password: 'admin123', type: 'admin', name: 'System Administrator' },
+                teacher: { username: 'teacher', password: 'teacher123', type: 'teacher', name: 'John Doe', subjects: ['Mathematics', 'English'] },
+                parent: { username: 'parent', password: 'parent123', type: 'parent', name: 'Jane Smith', children: ['STU001'] }
+            },
+            students: {},
+            teachers: {},
+            classes: ['PP1', 'PP2', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'],
+            subjects: {
+                'PP1': ['Language Activities', 'Mathematical Activities', 'Environmental Activities', 'Psychomotor & Creative Activities', 'Religious Education'],
+                'PP2': ['Language Activities', 'Mathematical Activities', 'Environmental Activities', 'Psychomotor & Creative Activities', 'Religious Education'],
+                'Grade 1': ['English', 'Kiswahili', 'Mathematics', 'Environmental Activities', 'Psychomotor & Creative Activities', 'Religious Education'],
+                'Grade 2': ['English', 'Kiswahili', 'Mathematics', 'Environmental Activities', 'Psychomotor & Creative Activities', 'Religious Education'],
+                'Grade 3': ['English', 'Kiswahili', 'Mathematics', 'Environmental Activities', 'Psychomotor & Creative Activities', 'Religious Education'],
+                'Grade 4': ['English', 'Kiswahili', 'Mathematics', 'Environmental Activities', 'Creative Arts', 'Religious Education', 'Agriculture & Nutrition', 'Social Studies', 'Science & Technology'],
+                'Grade 5': ['English', 'Kiswahili', 'Mathematics', 'Environmental Activities', 'Creative Arts', 'Religious Education', 'Agriculture & Nutrition', 'Social Studies', 'Science & Technology'],
+                'Grade 6': ['English', 'Kiswahili', 'Mathematics', 'Environmental Activities', 'Creative Arts', 'Religious Education', 'Agriculture & Nutrition', 'Social Studies', 'Science & Technology']
+            },
+            marks: {},
+            announcements: [],
+            years: Array.from({length: 27}, (_, i) => 2024 + i),
+            terms: ['Term 1', 'Term 2', 'Term 3'],
+            examTypes: ['Midterm', 'Endterm']
+        };
+
+        // Cloud Data Persistence Functions
+        let dataLoaded = false;
+        
+        // Save data to cloud using Poe API
+        async function saveDataToCloud() {
+            if (!window.Poe || !window.Poe.sendUserMessage) return;
+            
+            try {
+                const dataToSave = JSON.stringify({
+                    timestamp: Date.now(),
+                    students: schoolData.students,
+                    teachers: schoolData.teachers,
+                    marks: schoolData.marks,
+                    announcements: schoolData.announcements
+                });
+                
+                await window.Poe.sendUserMessage(
+                    `@Claude-Sonnet-4 SAVE_SCHOOL_DATA: ${dataToSave}`,
+                    {
+                        handler: 'dataSaveHandler',
+                        stream: false,
+                        openChat: false,
+                        handlerContext: { action: 'save' }
+                    }
+                );
+            } catch (error) {
+                console.error('Error saving data:', error);
+            }
+        }
+        
+        // Load data from cloud using Poe API
+        async function loadDataFromCloud() {
+            if (!window.Poe || !window.Poe.sendUserMessage || dataLoaded) return;
+            
+            try {
+                await window.Poe.sendUserMessage(
+                    `@Claude-Sonnet-4 LOAD_SCHOOL_DATA: Please return the latest saved school data in JSON format. If no data exists, return "NO_DATA".`,
+                    {
+                        handler: 'dataLoadHandler',
+                        stream: false,
+                        openChat: false,
+                        handlerContext: { action: 'load' }
+                    }
+                );
+            } catch (error) {
+                console.error('Error loading data:', error);
+                initializeSampleData(); // Fall back to sample data
+            }
+        }
+        
+        // Register data handlers
+        if (window.Poe && window.Poe.registerHandler) {
+            window.Poe.registerHandler('dataSaveHandler', (result, context) => {
+                if (result.status === 'complete') {
+                    console.log('Data saved successfully to cloud');
+                } else if (result.status === 'error') {
+                    console.error('Error saving data to cloud');
+                }
+            });
+            
+            window.Poe.registerHandler('dataLoadHandler', (result, context) => {
+                if (result.status === 'complete') {
+                    const response = result.responses[0]?.content;
+                    if (response && response.includes('{') && !response.includes('NO_DATA')) {
+                        try {
+                            // Extract JSON from response
+                            const jsonStart = response.indexOf('{');
+                            const jsonEnd = response.lastIndexOf('}') + 1;
+                            const jsonData = response.substring(jsonStart, jsonEnd);
+                            const loadedData = JSON.parse(jsonData);
+                            
+                            // Merge loaded data
+                            if (loadedData.students) Object.assign(schoolData.students, loadedData.students);
+                            if (loadedData.teachers) Object.assign(schoolData.teachers, loadedData.teachers);
+                            if (loadedData.marks) Object.assign(schoolData.marks, loadedData.marks);
+                            if (loadedData.announcements) schoolData.announcements = loadedData.announcements;
+                            
+                            dataLoaded = true;
+                            console.log('Data loaded successfully from cloud');
+                            
+                            // Refresh current view if logged in
+                            if (currentUser) {
+                                showContent(currentTab);
+                            }
+                        } catch (error) {
+                            console.error('Error parsing loaded data:', error);
+                            initializeSampleData();
+                        }
+                    } else {
+                        console.log('No saved data found, initializing with sample data');
+                        initializeSampleData();
+                    }
+                    dataLoaded = true;
+                } else if (result.status === 'error') {
+                    console.error('Error loading data from cloud');
+                    initializeSampleData();
+                    dataLoaded = true;
+                }
+            });
+        }
+
+        // Initialize sample data
+        function initializeSampleData() {
+            // Add sample students
+            for (let i = 1; i <= 50; i++) {
+                const studentId = `STU${String(i).padStart(3, '0')}`;
+                const grades = ['PP1', 'PP2', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'];
+                const grade = grades[Math.floor(Math.random() * grades.length)];
+                
+                schoolData.students[studentId] = {
+                    id: studentId,
+                    name: `Student ${i}`,
+                    grade: grade,
+                    gender: Math.random() > 0.5 ? 'Male' : 'Female',
+                    assessment_number: `A${String(i).padStart(3, '0')}`,
+                    year: 2024
+                };
+            }
+
+            // Add sample teachers
+            for (let i = 1; i <= 10; i++) {
+                const teacherId = `TCH${String(i).padStart(3, '0')}`;
+                schoolData.teachers[teacherId] = {
+                    id: teacherId,
+                    name: `Teacher ${i}`,
+                    subjects: ['Mathematics', 'English'],
+                    classes: ['Grade 1', 'Grade 2']
+                };
+            }
+        }
+
+        // Grading system
+        function calculateGrade(marks) {
+            if (marks >= 75) return { pl: 'EE', al: marks >= 88 ? 'AL8' : 'AL7', points: marks >= 88 ? 8 : 7 };
+            if (marks >= 50) return { pl: 'ME', al: marks >= 62 ? 'AL6' : marks >= 50 ? 'AL5' : 'AL4', points: marks >= 62 ? 6 : marks >= 50 ? 5 : 4 };
+            if (marks >= 25) return { pl: 'AE', al: marks >= 37 ? 'AL3' : 'AL2', points: marks >= 37 ? 3 : 2 };
+            return { pl: 'BE', al: 'AL1', points: 1 };
+        }
+
+        function getPerformanceDescription(pl) {
+            const descriptions = {
+                'EE': 'EXCEEDING EXPECTATIONS',
+                'ME': 'MEETING EXPECTATIONS',
+                'AE': 'APPROACHING EXPECTATIONS',
+                'BE': 'BELOW EXPECTATIONS'
+            };
+            return descriptions[pl] || 'BELOW EXPECTATIONS';
+        }
+
+        function getSubjectRemarks(marks) {
+            if (marks >= 88) return 'Excellent';
+            if (marks >= 75) return 'Very Good';
+            if (marks >= 62) return 'Good';
+            if (marks >= 50) return 'Satisfactory';
+            if (marks >= 37) return 'Fair';
+            if (marks >= 25) return 'Needs Improvement';
+            return 'Requires Attention';
+        }
+
+        // Authentication
+        function login(username, password, userType) {
+            const user = Object.values(schoolData.users).find(u => 
+                u.username === username && u.password === password && u.type === userType
+            );
+            
+            if (user) {
+                currentUser = user;
+                showMainApp();
+                return true;
+            }
+            return false;
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+        }
+
+        function showMainApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('userInfo').textContent = `${currentUser.name} (${currentUser.type})`;
+            
+            generateNavigation();
+            showContent('dashboard');
+        }
+
+        // Navigation
+        function generateNavigation() {
+            const nav = document.getElementById('navigationTabs');
+            nav.innerHTML = '';
+
+            const tabs = {
+                admin: ['Dashboard', 'Students', 'Teachers', 'Marks Entry', 'Reports', 'Marksheets', 'Broadsheet', 'Announcements'],
+                teacher: ['Dashboard', 'Marks Entry', 'Reports', 'Announcements'],
+                parent: ['Dashboard', 'Results', 'Announcements']
+            };
+
+            tabs[currentUser.type].forEach(tab => {
+                const button = document.createElement('button');
+                button.className = 'px-4 py-2 hover:bg-primary/80 transition duration-200 whitespace-nowrap';
+                button.textContent = tab;
+                button.onclick = () => showContent(tab.toLowerCase().replace(' ', '_'));
+                nav.appendChild(button);
+            });
+        }
+
+        // Content management
+        function showContent(contentType) {
+            currentTab = contentType;
+            const contentArea = document.getElementById('contentArea');
+            
+            switch(contentType) {
+                case 'dashboard':
+                    contentArea.innerHTML = generateDashboard();
+                    break;
+                case 'students':
+                    contentArea.innerHTML = generateStudentsPage();
+                    break;
+                case 'teachers':
+                    contentArea.innerHTML = generateTeachersPage();
+                    break;
+                case 'marks_entry':
+                    contentArea.innerHTML = generateMarksEntryPage();
+                    break;
+                case 'reports':
+                    contentArea.innerHTML = generateReportsPage();
+                    break;
+                case 'marksheets':
+                    contentArea.innerHTML = generateMarksheetsPage();
+                    break;
+                case 'broadsheet':
+                    contentArea.innerHTML = generateBroadsheetPage();
+                    break;
+                case 'announcements':
+                    contentArea.innerHTML = generateAnnouncementsPage();
+                    break;
+                case 'results':
+                    contentArea.innerHTML = generateResultsPage();
+                    break;
+            }
+        }
+
+        // Dashboard
+        function generateDashboard() {
+            const studentCount = Object.keys(schoolData.students).length;
+            const teacherCount = Object.keys(schoolData.teachers).length;
+            const announcementCount = schoolData.announcements.length;
+
+            return `
+                <div class="space-y-6">
+                    <div class="text-center">
+                        <img src="https://pfst.cf2.poecdn.net/base/image/a155debe19d01ae67292b8a930047cc3911675d503421d2c07cf7a2f73a6ab84?w=1024&h=1536" alt="School Logo" class="w-24 h-24 mx-auto mb-4 rounded-full">
+                        <h1 class="text-3xl font-bold text-gray-800 dark:text-white">RAMA SDA PRIMARY SCHOOL</h1>
+                        <p class="text-gray-600 dark:text-gray-300">P.O. BOX 45-50201, CHEPTAIS</p>
+                        <p class="text-primary font-semibold text-lg">IN GOD WE CAN</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                        <span class="text-white font-bold">S</span>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">Students</h3>
+                                    <p class="text-2xl font-bold text-blue-600">${studentCount}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                        <span class="text-white font-bold">T</span>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">Teachers</h3>
+                                    <p class="text-2xl font-bold text-green-600">${teacherCount}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                                        <span class="text-white font-bold">A</span>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">Announcements</h3>
+                                    <p class="text-2xl font-bold text-yellow-600">${announcementCount}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                        <h2 class="text-xl font-bold mb-4">Quick Actions</h2>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            ${currentUser.type === 'admin' ? `
+                                <button onclick="showContent('students')" class="bg-primary text-white p-4 rounded-lg hover:bg-primary/90 transition duration-200">
+                                    Manage Students
+                                </button>
+                                <button onclick="showContent('teachers')" class="bg-primary text-white p-4 rounded-lg hover:bg-primary/90 transition duration-200">
+                                    Manage Teachers
+                                </button>
+                            ` : ''}
+                            <button onclick="showContent('marks_entry')" class="bg-primary text-white p-4 rounded-lg hover:bg-primary/90 transition duration-200">
+                                ${currentUser.type === 'teacher' ? 'Enter Marks' : 'View Marks'}
+                            </button>
+                            <button onclick="showContent('reports')" class="bg-primary text-white p-4 rounded-lg hover:bg-primary/90 transition duration-200">
+                                View Reports
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Students management
+        function generateStudentsPage() {
+            if (currentUser.type !== 'admin') {
+                return '<div class="text-center py-8"><p class="text-red-500">Access denied. Admin privileges required.</p></div>';
+            }
+
+            const students = Object.values(schoolData.students);
+            
+            return `
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h1 class="text-2xl font-bold">Student Management</h1>
+                        <button onclick="showAddStudentForm()" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90">
+                            Add New Student
+                        </button>
+                    </div>
+
+                    <div id="studentForm" class="hidden bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                        <h2 class="text-xl font-bold mb-4">Add/Edit Student</h2>
+                        <form id="addStudentForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="hidden" id="studentId">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Student Name</label>
+                                <input type="text" id="studentName" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Assessment Number</label>
+                                <input type="text" id="assessmentNumber" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Gender</label>
+                                <select id="studentGender" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Grade/Class</label>
+                                <select id="studentGrade" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    ${schoolData.classes.map(cls => `<option value="${cls}">${cls}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Academic Year</label>
+                                <select id="studentYear" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    ${schoolData.years.map(year => `<option value="${year}" ${year === 2024 ? 'selected' : ''}>${year}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <button type="submit" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary/90 mr-2">
+                                    Save Student
+                                </button>
+                                <button type="button" onclick="hideStudentForm()" class="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-700">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">S/No</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Assessment No.</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Gender</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Grade</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Year</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                    ${students.map((student, index) => `
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">${index + 1}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">${student.assessment_number}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">${student.name}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">${student.gender}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">${student.grade}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">${student.year}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <button onclick="editStudent('${student.id}')" class="text-primary hover:text-primary/80 mr-2">Edit</button>
+                                                <button onclick="deleteStudent('${student.id}')" class="text-red-600 hover:text-red-800">Delete</button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Teachers management
+        function generateTeachersPage() {
+            if (currentUser.type !== 'admin') {
+                return '<div class="text-center py-8"><p class="text-red-500">Access denied. Admin privileges required.</p></div>';
+            }
+
+            const teachers = Object.values(schoolData.teachers);
+            
+            return `
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h1 class="text-2xl font-bold">Teacher Management</h1>
+                        <button onclick="showAddTeacherForm()" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90">
+                            Add New Teacher
+                        </button>
+                    </div>
+
+                    <div id="teacherForm" class="hidden bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                        <h2 class="text-xl font-bold mb-4">Add/Edit Teacher</h2>
+                        <form id="addTeacherForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="hidden" id="teacherId">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Teacher Name</label>
+                                <input type="text" id="teacherName" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Subjects (Select Multiple)</label>
+                                <select id="teacherSubjects" multiple class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary h-32">
+                                    ${getAllSubjects().map(subject => `<option value="${subject}">${subject}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Classes (Select Multiple)</label>
+                                <select id="teacherClasses" multiple class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary h-32">
+                                    ${schoolData.classes.map(cls => `<option value="${cls}">${cls}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <button type="submit" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary/90 mr-2">
+                                    Save Teacher
+                                </button>
+                                <button type="button" onclick="hideTeacherForm()" class="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-700">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">S/No</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Subjects</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Classes</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                    ${teachers.map((teacher, index) => `
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">${index + 1}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">${teacher.name}</td>
+                                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-300">${teacher.subjects?.join(', ') || 'N/A'}</td>
+                                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-300">${teacher.classes?.join(', ') || 'N/A'}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <button onclick="editTeacher('${teacher.id}')" class="text-primary hover:text-primary/80 mr-2">Edit</button>
+                                                <button onclick="deleteTeacher('${teacher.id}')" class="text-red-600 hover:text-red-800">Delete</button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Marks Entry
+        function generateMarksEntryPage() {
+            return `
+                <div class="space-y-6">
+                    <h1 class="text-2xl font-bold">Marks Entry</h1>
+
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                        <h2 class="text-xl font-bold mb-4">Select Parameters</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Academic Year</label>
+                                <select id="marksYear" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    ${schoolData.years.map(year => `<option value="${year}" ${year === 2024 ? 'selected' : ''}>${year}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Grade/Class</label>
+                                <select id="marksGrade" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    <option value="">Select Grade</option>
+                                    ${schoolData.classes.map(cls => `<option value="${cls}">${cls}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Term</label>
+                                <select id="marksTerm" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    <option value="">Select Term</option>
+                                    ${schoolData.terms.map(term => `<option value="${term}">${term}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Exam Type</label>
+                                <select id="marksExamType" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    <option value="">Select Exam Type</option>
+                                    ${schoolData.examTypes.map(type => `<option value="${type}">${type}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="flex items-end">
+                                <button onclick="loadStudentsForMarks()" class="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/90">
+                                    Load Students
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="marksEntryArea" class="hidden bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-bold">Enter Marks</h2>
+                            <button onclick="submitAllMarks()" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700">
+                                Submit All Marks
+                            </button>
+                        </div>
+                        <div id="marksTable"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Reports Page
+        function generateReportsPage() {
+            return `
+                <div class="space-y-6">
+                    <h1 class="text-2xl font-bold">Reports & Report Cards</h1>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                            <h2 class="text-xl font-bold mb-4">Individual Report Card</h2>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Academic Year</label>
+                                    <select id="reportYear" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                        ${schoolData.years.map(year => `<option value="${year}" ${year === 2024 ? 'selected' : ''}>${year}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Term</label>
+                                    <select id="reportTerm" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                        ${schoolData.terms.map(term => `<option value="${term}">${term}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Grade/Class</label>
+                                    <select id="reportGrade" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                        <option value="">Select Grade</option>
+                                        ${schoolData.classes.map(cls => `<option value="${cls}">${cls}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Student</label>
+                                    <select id="reportStudent" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                        <option value="">Select Student</option>
+                                    </select>
+                                </div>
+                                <button onclick="generateIndividualReport()" class="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/90">
+                                    Generate Report Card
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                            <h2 class="text-xl font-bold mb-4">Class Report Cards (Bulk)</h2>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Academic Year</label>
+                                    <select id="bulkReportYear" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                        ${schoolData.years.map(year => `<option value="${year}" ${year === 2024 ? 'selected' : ''}>${year}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Term</label>
+                                    <select id="bulkReportTerm" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                        ${schoolData.terms.map(term => `<option value="${term}">${term}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Grade/Class</label>
+                                    <select id="bulkReportGrade" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                        <option value="">Select Grade</option>
+                                        ${schoolData.classes.map(cls => `<option value="${cls}">${cls}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <button onclick="generateBulkReports()" class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">
+                                    Generate All Report Cards
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Marksheets Page
+        function generateMarksheetsPage() {
+            return `
+                <div class="space-y-6">
+                    <h1 class="text-2xl font-bold">Marksheets (Plain Forms)</h1>
+
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                        <h2 class="text-xl font-bold mb-4">Generate Marksheet</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Academic Year</label>
+                                <select id="marksheetYear" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    ${schoolData.years.map(year => `<option value="${year}" ${year === 2024 ? 'selected' : ''}>${year}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Term</label>
+                                <select id="marksheetTerm" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    ${schoolData.terms.map(term => `<option value="${term}">${term}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Grade/Class</label>
+                                <select id="marksheetGrade" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    <option value="">Select Grade</option>
+                                    ${schoolData.classes.map(cls => `<option value="${cls}">${cls}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Exam Type</label>
+                                <select id="marksheetExamType" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    ${schoolData.examTypes.map(type => `<option value="${type}">${type}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+                        <button onclick="generateMarksheet()" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary/90">
+                            Generate & Print Marksheet
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Broadsheet Page
+        function generateBroadsheetPage() {
+            return `
+                <div class="space-y-6">
+                    <h1 class="text-2xl font-bold">Broadsheet Analysis</h1>
+
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                        <h2 class="text-xl font-bold mb-4">Generate Broadsheet</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Academic Year</label>
+                                <select id="broadsheetYear" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    ${schoolData.years.map(year => `<option value="${year}" ${year === 2024 ? 'selected' : ''}>${year}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Term</label>
+                                <select id="broadsheetTerm" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    ${schoolData.terms.map(term => `<option value="${term}">${term}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Grade/Class</label>
+                                <select id="broadsheetGrade" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    <option value="">Select Grade</option>
+                                    ${schoolData.classes.map(cls => `<option value="${cls}">${cls}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Exam Type</label>
+                                <select id="broadsheetExamType" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    ${schoolData.examTypes.map(type => `<option value="${type}">${type}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+                        <button onclick="generateBroadsheet()" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary/90">
+                            Generate & View Broadsheet
+                        </button>
+                    </div>
+
+                    <div id="broadsheetResults" class="hidden">
+                        <!-- Broadsheet content will be displayed here -->
+                    </div>
+                </div>
+            `;
+        }
+
+        // Announcements Page
+        function generateAnnouncementsPage() {
+            return `
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h1 class="text-2xl font-bold">Announcements</h1>
+                        ${currentUser.type === 'admin' ? `
+                            <button onclick="showAddAnnouncementForm()" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90">
+                                Add Announcement
+                            </button>
+                        ` : ''}
+                    </div>
+
+                    ${currentUser.type === 'admin' ? `
+                        <div id="announcementForm" class="hidden bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                            <h2 class="text-xl font-bold mb-4">Add Announcement</h2>
+                            <form id="addAnnouncementForm" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Title</label>
+                                    <input type="text" id="announcementTitle" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Message</label>
+                                    <textarea id="announcementMessage" rows="4" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Target Audience</label>
+                                    <select id="announcementAudience" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                        <option value="all">All</option>
+                                        <option value="teachers">Teachers Only</option>
+                                        <option value="parents">Parents Only</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <button type="submit" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary/90 mr-2">
+                                        Post Announcement
+                                    </button>
+                                    <button type="button" onclick="hideAnnouncementForm()" class="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    ` : ''}
+
+                    <div class="space-y-4">
+                        ${schoolData.announcements.length === 0 ? `
+                            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm text-center">
+                                <p class="text-gray-500 dark:text-gray-400">No announcements yet.</p>
+                            </div>
+                        ` : schoolData.announcements.map(announcement => `
+                            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                                <div class="flex justify-between items-start mb-3">
+                                    <h3 class="text-lg font-bold text-gray-800 dark:text-white">${announcement.title}</h3>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">${announcement.date}</span>
+                                </div>
+                                <p class="text-gray-600 dark:text-gray-300 mb-3">${announcement.message}</p>
+                                <div class="flex justify-between items-center">
+                                    <span class="inline-block bg-primary/10 text-primary px-2 py-1 rounded-full text-xs">
+                                        ${announcement.audience}
+                                    </span>
+                                    ${currentUser.type !== 'admin' ? `
+                                        <button onclick="respondToAnnouncement('${announcement.id}')" class="text-primary hover:text-primary/80 text-sm">
+                                            Respond
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Results Page (for parents)
+        function generateResultsPage() {
+            if (currentUser.type !== 'parent') {
+                return '<div class="text-center py-8"><p class="text-red-500">Access denied. Parent privileges required.</p></div>';
+            }
+
+            return `
+                <div class="space-y-6">
+                    <h1 class="text-2xl font-bold">Student Results</h1>
+
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                        <h2 class="text-xl font-bold mb-4">View Results</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Academic Year</label>
+                                <select id="resultsYear" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    ${schoolData.years.map(year => `<option value="${year}" ${year === 2024 ? 'selected' : ''}>${year}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Term</label>
+                                <select id="resultsTerm" class="w-full px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                                    ${schoolData.terms.map(term => `<option value="${term}">${term}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="flex items-end">
+                                <button onclick="loadParentResults()" class="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/90">
+                                    Load Results
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="parentResultsArea">
+                        <div class="text-center py-8">
+                            <p class="text-gray-500 dark:text-gray-400">Select year and term to view results.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Utility functions
+        function getAllSubjects() {
+            const allSubjects = new Set();
+            Object.values(schoolData.subjects).forEach(subjects => {
+                subjects.forEach(subject => allSubjects.add(subject));
+            });
+            return Array.from(allSubjects).sort();
+        }
+
+        function generateMarksheet() {
+            const year = document.getElementById('marksheetYear').value;
+            const term = document.getElementById('marksheetTerm').value;
+            const grade = document.getElementById('marksheetGrade').value;
+            const examType = document.getElementById('marksheetExamType').value;
+
+            if (!grade) {
+                alert('Please select a grade');
+                return;
+            }
+
+            const students = Object.values(schoolData.students).filter(s => s.grade === grade && s.year == year);
+            const subjects = schoolData.subjects[grade] || [];
+
+            // Create marksheet HTML
+            const marksheetHTML = generateMarksheetHTML(year, term, grade, examType, students, subjects);
+            
+            // Open in new window for printing
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(marksheetHTML);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function generateMarksheetHTML(year, term, grade, examType, students, subjects) {
+            const studentsPerPage = 40;
+            const pages = Math.ceil(students.length / studentsPerPage);
+            let html = '';
+
+            for (let page = 0; page < pages; page++) {
+                const start = page * studentsPerPage;
+                const end = Math.min(start + studentsPerPage, students.length);
+                const pageStudents = students.slice(start, end);
+
+                html += `
+                    <div class="marksheet ${page > 0 ? 'page-break' : ''}">
+                        <div class="school-header">
+                            <img src="https://pfst.cf2.poecdn.net/base/image/a155debe19d01ae67292b8a930047cc3911675d503421d2c07cf7a2f73a6ab84?w=1024&h=1536" alt="School Logo" class="school-logo" style="float: left;">
+                            <h1 style="margin: 0; font-size: 24px;">RAMA SDA PRIMARY SCHOOL</h1>
+                            <p style="margin: 5px 0;">P.O. BOX 45-50201, CHEPTAIS</p>
+                            <p style="margin: 5px 0; font-weight: bold;">IN GOD WE CAN</p>
+                            <h2 style="margin: 10px 0;">MARKSHEET - ${examType} ${term} ${year}</h2>
+                            <h3 style="margin: 10px 0;">Grade: ${grade}</h3>
+                        </div>
+
+                        <table style="width: 100%; margin-top: 20px;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 30px;">S/No</th>
+                                    <th style="width: 80px;">Assessment No.</th>
+                                    <th style="width: 200px;">Name</th>
+                                    <th style="width: 60px;">Gender</th>
+                                    ${subjects.map(subject => `<th style="width: 60px; transform: rotate(-45deg); white-space: nowrap;">${subject.substring(0, 8)}</th>`).join('')}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${pageStudents.map((student, index) => `
+                                    <tr>
+                                        <td style="text-align: center;">${start + index + 1}</td>
+                                        <td style="text-align: center;">${student.assessment_number}</td>
+                                        <td>${student.name}</td>
+                                        <td style="text-align: center;">${student.gender}</td>
+                                        ${subjects.map(() => '<td style="height: 25px; border: 1px solid #000;"></td>').join('')}
+                                    </tr>
+                                `).join('')}
+                                ${Array.from({length: studentsPerPage - pageStudents.length}, (_, i) => `
+                                    <tr>
+                                        <td style="height: 25px;"></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        ${subjects.map(() => '<td style="height: 25px; border: 1px solid #000;"></td>').join('')}
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+
+                        <div style="margin-top: 30px;">
+                            <p><strong>Teacher:</strong> _________________________ <strong>Signature:</strong> _________________ <strong>Date:</strong> _________</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Marksheet - ${grade} ${term} ${year}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; font-size: 12px; margin: 0; padding: 0; }
+                        .marksheet { width: 297mm; min-height: 210mm; padding: 15px; margin: 0; }
+                        .school-header { text-align: center; margin-bottom: 20px; }
+                        .school-logo { width: 60px; height: 60px; }
+                        table { border-collapse: collapse; width: 100%; }
+                        th, td { border: 1px solid #000; padding: 4px; text-align: left; }
+                        th { background-color: #f0f0f0; font-weight: bold; }
+                        .page-break { page-break-before: always; }
+                        @media print { .page-break { page-break-before: always; } }
+                    </style>
+                </head>
+                <body>${html}</body>
+                </html>
+            `;
+        }
+
+        function generateIndividualReport() {
+            const year = document.getElementById('reportYear').value;
+            const term = document.getElementById('reportTerm').value;
+            const grade = document.getElementById('reportGrade').value;
+            const studentId = document.getElementById('reportStudent').value;
+
+            if (!grade || !studentId) {
+                alert('Please select grade and student');
+                return;
+            }
+
+            const student = schoolData.students[studentId];
+            if (!student) {
+                alert('Student not found');
+                return;
+            }
+
+            // Generate sample marks for demonstration
+            const subjects = schoolData.subjects[grade] || [];
+            const sampleMarks = {};
+            subjects.forEach(subject => {
+                sampleMarks[subject] = {
+                    midterm: Math.floor(Math.random() * 100),
+                    endterm: Math.floor(Math.random() * 100)
+                };
+            });
+
+            const reportHTML = generateReportCardHTML(student, year, term, grade, subjects, sampleMarks);
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(reportHTML);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function generateReportCardHTML(student, year, term, grade, subjects, marks) {
+            let totalMarks = 0;
+            let totalPoints = 0;
+            let subjectCount = 0;
+
+            const subjectRows = subjects.map(subject => {
+                const midtermMark = marks[subject]?.midterm || 0;
+                const endtermMark = marks[subject]?.endterm || 0;
+                const average = term === 'Term 1' ? midtermMark : ((midtermMark + endtermMark) / 2);
+                
+                const gradeInfo = calculateGrade(average);
+                totalMarks += average;
+                totalPoints += gradeInfo.points;
+                subjectCount++;
+
+                return `
+                    <tr>
+                        <td>${subject}</td>
+                        ${term === 'Term 1' ? `<td>${midtermMark}</td><td>-</td>` : `<td>${midtermMark}</td><td>${endtermMark}</td>`}
+                        <td>${average.toFixed(1)}</td>
+                        <td>${gradeInfo.pl}</td>
+                        <td>${gradeInfo.al}</td>
+                        <td>TD</td>
+                        <td>${getSubjectRemarks(average)}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            const averageMark = totalMarks / subjectCount;
+            const finalGrade = calculateGrade(averageMark);
+
+            return `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Report Card - ${student.name}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; font-size: 12px; margin: 0; padding: 0; }
+                        .report-card { width: 210mm; min-height: 297mm; padding: 20px; margin: 0; }
+                        .school-header { text-align: center; margin-bottom: 20px; }
+                        .school-logo { width: 80px; height: 80px; }
+                        .student-info { display: flex; justify-content: space-between; margin-bottom: 20px; }
+                        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+                        th, td { border: 1px solid #000; padding: 6px; text-align: center; }
+                        th { background-color: #f0f0f0; font-weight: bold; }
+                        .summary { margin-top: 20px; }
+                        .comments { margin-top: 20px; }
+                        .signatures { margin-top: 30px; display: flex; justify-content: space-between; }
+                    </style>
+                </head>
+                <body>
+                    <div class="report-card">
+                        <div class="school-header">
+                            <img src="https://pfst.cf2.poecdn.net/base/image/a155debe19d01ae67292b8a930047cc3911675d503421d2c07cf7a2f73a6ab84?w=1024&h=1536" alt="School Logo" class="school-logo">
+                            <h1 style="margin: 10px 0; font-size: 24px;">RAMA SDA PRIMARY SCHOOL</h1>
+                            <p style="margin: 5px 0;">P.O. BOX 45-50201, CHEPTAIS</p>
+                            <p style="margin: 5px 0; font-weight: bold;">IN GOD WE CAN</p>
+                            <h2 style="margin: 10px 0;">STUDENT REPORT CARD</h2>
+                        </div>
+
+                        <div class="student-info">
+                            <div>
+                                <p><strong>Name:</strong> ${student.name}</p>
+                                <p><strong>Assessment Number:</strong> ${student.assessment_number}</p>
+                                <p><strong>Gender:</strong> ${student.gender}</p>
+                            </div>
+                            <div>
+                                <p><strong>Grade:</strong> ${grade}</p>
+                                <p><strong>Academic Year:</strong> ${year}</p>
+                                <p><strong>Term:</strong> ${term}</p>
+                            </div>
+                        </div>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th rowspan="2">Learning Area</th>
+                                    ${term === 'Term 1' ? '<th colspan="2">Formative Assessment</th>' : '<th colspan="2">Assessment</th>'}
+                                    <th rowspan="2">Average</th>
+                                    <th rowspan="2">Performance Level</th>
+                                    <th rowspan="2">Achievement Level</th>
+                                    <th rowspan="2">Teacher Initial</th>
+                                    <th rowspan="2">Remarks</th>
+                                </tr>
+                                <tr>
+                                    <th>Midterm</th>
+                                    <th>${term === 'Term 1' ? 'N/A' : 'Endterm'}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${subjectRows}
+                            </tbody>
+                        </table>
+
+                        <div class="summary">
+                            <table style="width: 50%;">
+                                <tr><td><strong>Total Marks:</strong></td><td>${totalMarks.toFixed(1)}</td></tr>
+                                <tr><td><strong>Average Mark:</strong></td><td>${averageMark.toFixed(1)}</td></tr>
+                                <tr><td><strong>Total Points:</strong></td><td>${totalPoints}</td></tr>
+                                <tr><td><strong>Performance Level:</strong></td><td>${getPerformanceDescription(finalGrade.pl)}</td></tr>
+                                <tr><td><strong>Achievement Level:</strong></td><td>${finalGrade.al}</td></tr>
+                            </table>
+                        </div>
+
+                        <div class="comments">
+                            <p><strong>Class Teacher's Comments:</strong></p>
+                            <p style="border: 1px solid #000; min-height: 50px; padding: 10px;">
+                                ${getTeacherComment(averageMark)}
+                            </p>
+                            
+                            <p><strong>Head of Institution Comments:</strong></p>
+                            <p style="border: 1px solid #000; min-height: 50px; padding: 10px;">
+                                ${getHOIComment(averageMark)}
+                            </p>
+                        </div>
+
+                        <div class="signatures">
+                            <div>
+                                <p><strong>Class Teacher:</strong></p>
+                                <p>Signature: ________________</p>
+                                <p>Date: ________________</p>
+                            </div>
+                            <div>
+                                <p><strong>Head of Institution:</strong></p>
+                                <p>Signature: ________________</p>
+                                <p>Date: ________________</p>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 20px;">
+                            <p><strong>Opening Day:</strong> ________________</p>
+                            <p><strong>Closing Day:</strong> ________________</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+        }
+
+        function getTeacherComment(average) {
+            if (average >= 75) return "Excellent performance! Keep up the good work.";
+            if (average >= 62) return "Good performance. Continue working hard.";
+            if (average >= 50) return "Satisfactory performance. More effort needed.";
+            if (average >= 37) return "Fair performance. Needs improvement in most areas.";
+            return "Below expectations. Requires serious attention and support.";
+        }
+
+        function getHOIComment(average) {
+            if (average >= 75) return "Outstanding performance. Well done!";
+            if (average >= 62) return "Good progress shown. Keep it up.";
+            if (average >= 50) return "Satisfactory progress. Encouraged to work harder.";
+            if (average >= 37) return "Needs more support and attention.";
+            return "Requires immediate intervention and support.";
+        }
+
+        // Event handlers
+        function showAddStudentForm() {
+            document.getElementById('studentForm').classList.remove('hidden');
+            document.getElementById('addStudentForm').reset();
+            document.getElementById('studentId').value = '';
+        }
+
+        function hideStudentForm() {
+            document.getElementById('studentForm').classList.add('hidden');
+        }
+
+        function showAddTeacherForm() {
+            document.getElementById('teacherForm').classList.remove('hidden');
+            document.getElementById('addTeacherForm').reset();
+            document.getElementById('teacherId').value = '';
+        }
+
+        function hideTeacherForm() {
+            document.getElementById('teacherForm').classList.add('hidden');
+        }
+
+        function showAddAnnouncementForm() {
+            document.getElementById('announcementForm').classList.remove('hidden');
+        }
+
+        function hideAnnouncementForm() {
+            document.getElementById('announcementForm').classList.add('hidden');
+        }
+
+        function loadStudentsForMarks() {
+            const year = document.getElementById('marksYear').value;
+            const grade = document.getElementById('marksGrade').value;
+            const term = document.getElementById('marksTerm').value;
+            const examType = document.getElementById('marksExamType').value;
+
+            if (!grade || !term || !examType) {
+                alert('Please select all parameters');
+                return;
+            }
+
+            const students = Object.values(schoolData.students).filter(s => s.grade === grade && s.year == year);
+            const subjects = schoolData.subjects[grade] || [];
+
+            if (students.length === 0) {
+                alert('No students found for the selected grade');
+                return;
+            }
+
+            document.getElementById('marksEntryArea').classList.remove('hidden');
+            
+            const marksTable = document.getElementById('marksTable');
+            marksTable.innerHTML = `
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">S/No</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Name</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Assessment No.</th>
+                                ${subjects.map(subject => `
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">${subject}</th>
+                                `).join('')}
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            ${students.map((student, index) => `
+                                <tr>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">${index + 1}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">${student.name}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">${student.assessment_number}</td>
+                                    ${subjects.map(subject => `
+                                        <td class="px-4 py-4 whitespace-nowrap">
+                                            <input type="number" 
+                                                   min="0" max="100" 
+                                                   class="w-20 px-2 py-1 text-base border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                                                   data-student="${student.id}" 
+                                                   data-subject="${subject}"
+                                                   placeholder="0-100">
+                                        </td>
+                                    `).join('')}
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function submitAllMarks() {
+            const year = document.getElementById('marksYear').value;
+            const grade = document.getElementById('marksGrade').value;
+            const term = document.getElementById('marksTerm').value;
+            const examType = document.getElementById('marksExamType').value;
+
+            const inputs = document.querySelectorAll('#marksTable input[type="number"]');
+            const marksData = {};
+
+            inputs.forEach(input => {
+                if (input.value && input.value !== '') {
+                    const studentId = input.dataset.student;
+                    const subject = input.dataset.subject;
+                    const mark = parseInt(input.value);
+
+                    if (!marksData[studentId]) {
+                        marksData[studentId] = {};
+                    }
+                    if (!marksData[studentId][subject]) {
+                        marksData[studentId][subject] = {};
+                    }
+                    
+                    marksData[studentId][subject][examType.toLowerCase()] = mark;
+                }
+            });
+
+            // Save to schoolData.marks
+            const key = `${year}_${grade}_${term}`;
+            if (!schoolData.marks[key]) {
+                schoolData.marks[key] = {};
+            }
+            
+            Object.keys(marksData).forEach(studentId => {
+                if (!schoolData.marks[key][studentId]) {
+                    schoolData.marks[key][studentId] = {};
+                }
+                Object.assign(schoolData.marks[key][studentId], marksData[studentId]);
+            });
+
+            // Save to cloud
+            saveDataToCloud();
+
+            alert('Marks submitted successfully!');
+            document.getElementById('marksEntryArea').classList.add('hidden');
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                document.getElementById('loadingScreen').classList.add('hidden');
+                document.getElementById('loginScreen').classList.remove('hidden');
+                
+                // Try to load data from cloud, fall back to sample data if needed
+                if (window.Poe && window.Poe.sendUserMessage) {
+                    loadDataFromCloud();
+                } else {
+                    initializeSampleData();
+                }
+            }, 2000);
+
+            // Initialize sample data as fallback
+            if (!window.Poe || !window.Poe.sendUserMessage) {
+                initializeSampleData();
+            }
+
+            // Login form handler
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                const userType = document.getElementById('userType').value;
+
+                if (login(username, password, userType)) {
+                    // Login successful
+                } else {
+                    alert('Invalid credentials. Please try again.');
+                }
+            });
+
+            // Logout button
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+
+            // Student form handler
+            document.addEventListener('submit', function(e) {
+                if (e.target.id === 'addStudentForm') {
+                    e.preventDefault();
+                    const studentId = document.getElementById('studentId').value || `STU${String(Object.keys(schoolData.students).length + 1).padStart(3, '0')}`;
+                    
+                    schoolData.students[studentId] = {
+                        id: studentId,
+                        name: document.getElementById('studentName').value,
+                        assessment_number: document.getElementById('assessmentNumber').value,
+                        gender: document.getElementById('studentGender').value,
+                        grade: document.getElementById('studentGrade').value,
+                        year: parseInt(document.getElementById('studentYear').value)
+                    };
+
+                    // Save to cloud
+                    saveDataToCloud();
+
+                    alert('Student saved successfully!');
+                    hideStudentForm();
+                    showContent('students');
+                }
+
+                if (e.target.id === 'addTeacherForm') {
+                    e.preventDefault();
+                    const teacherId = document.getElementById('teacherId').value || `TCH${String(Object.keys(schoolData.teachers).length + 1).padStart(3, '0')}`;
+                    
+                    const subjectOptions = document.getElementById('teacherSubjects').selectedOptions;
+                    const classOptions = document.getElementById('teacherClasses').selectedOptions;
+                    
+                    schoolData.teachers[teacherId] = {
+                        id: teacherId,
+                        name: document.getElementById('teacherName').value,
+                        subjects: Array.from(subjectOptions).map(option => option.value),
+                        classes: Array.from(classOptions).map(option => option.value)
+                    };
+
+                    // Save to cloud
+                    saveDataToCloud();
+
+                    alert('Teacher saved successfully!');
+                    hideTeacherForm();
+                    showContent('teachers');
+                }
+
+                if (e.target.id === 'addAnnouncementForm') {
+                    e.preventDefault();
+                    const announcement = {
+                        id: `ANN${Date.now()}`,
+                        title: document.getElementById('announcementTitle').value,
+                        message: document.getElementById('announcementMessage').value,
+                        audience: document.getElementById('announcementAudience').value,
+                        date: new Date().toLocaleDateString(),
+                        author: currentUser.name
+                    };
+
+                    schoolData.announcements.unshift(announcement);
+                    
+                    // Save to cloud
+                    saveDataToCloud();
+                    
+                    alert('Announcement posted successfully!');
+                    hideAnnouncementForm();
+                    showContent('announcements');
+                }
+            });
+
+            // Grade change handler for report
+            document.addEventListener('change', function(e) {
+                if (e.target.id === 'reportGrade') {
+                    const grade = e.target.value;
+                    const studentSelect = document.getElementById('reportStudent');
+                    studentSelect.innerHTML = '<option value="">Select Student</option>';
+                    
+                    if (grade) {
+                        const students = Object.values(schoolData.students).filter(s => s.grade === grade);
+                        students.forEach(student => {
+                            const option = document.createElement('option');
+                            option.value = student.id;
+                            option.textContent = `${student.name} (${student.assessment_number})`;
+                            studentSelect.appendChild(option);
+                        });
+                    }
+                }
+            });
+        });
+
+        // Additional utility functions for complex operations
+        function editStudent(studentId) {
+            const student = schoolData.students[studentId];
+            if (student) {
+                document.getElementById('studentId').value = student.id;
+                document.getElementById('studentName').value = student.name;
+                document.getElementById('assessmentNumber').value = student.assessment_number;
+                document.getElementById('studentGender').value = student.gender;
+                document.getElementById('studentGrade').value = student.grade;
+                document.getElementById('studentYear').value = student.year;
+                showAddStudentForm();
+            }
+        }
+
+        function deleteStudent(studentId) {
+            if (confirm('Are you sure you want to delete this student?')) {
+                delete schoolData.students[studentId];
+                showContent('students');
+            }
+        }
+
+        function editTeacher(teacherId) {
+            const teacher = schoolData.teachers[teacherId];
+            if (teacher) {
+                document.getElementById('teacherId').value = teacher.id;
+                document.getElementById('teacherName').value = teacher.name;
+                
+                // Set selected subjects
+                const subjectSelect = document.getElementById('teacherSubjects');
+                Array.from(subjectSelect.options).forEach(option => {
+                    option.selected = teacher.subjects && teacher.subjects.includes(option.value);
+                });
+                
+                // Set selected classes
+                const classSelect = document.getElementById('teacherClasses');
+                Array.from(classSelect.options).forEach(option => {
+                    option.selected = teacher.classes && teacher.classes.includes(option.value);
+                });
+                
+                showAddTeacherForm();
+            }
+        }
+
+        function deleteTeacher(teacherId) {
+            if (confirm('Are you sure you want to delete this teacher?')) {
+                delete schoolData.teachers[teacherId];
+                showContent('teachers');
+            }
+        }
+
+        function generateBulkReports() {
+            const year = document.getElementById('bulkReportYear').value;
+            const term = document.getElementById('bulkReportTerm').value;
+            const grade = document.getElementById('bulkReportGrade').value;
+
+            if (!grade) {
+                alert('Please select a grade');
+                return;
+            }
+
+            const students = Object.values(schoolData.students).filter(s => s.grade === grade && s.year == year);
+            if (students.length === 0) {
+                alert('No students found for the selected grade');
+                return;
+            }
+
+            // Generate all report cards in one document
+            const subjects = schoolData.subjects[grade] || [];
+            let allReportsHTML = '';
+
+            students.forEach((student, index) => {
+                // Generate sample marks for each student
+                const sampleMarks = {};
+                subjects.forEach(subject => {
+                    sampleMarks[subject] = {
+                        midterm: Math.floor(Math.random() * 100),
+                        endterm: Math.floor(Math.random() * 100)
+                    };
+                });
+
+                const reportHTML = generateReportCardHTML(student, year, term, grade, subjects, sampleMarks);
+                // Extract just the body content
+                const bodyStart = reportHTML.indexOf('<div class="report-card">');
+                const bodyEnd = reportHTML.lastIndexOf('</div>') + 6;
+                const reportBody = reportHTML.substring(bodyStart, bodyEnd);
+                
+                allReportsHTML += `${index > 0 ? '<div class="page-break"></div>' : ''}${reportBody}`;
+            });
+
+            const bulkHTML = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Bulk Report Cards - ${grade} ${term} ${year}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; font-size: 12px; margin: 0; padding: 0; }
+                        .report-card { width: 210mm; min-height: 297mm; padding: 20px; margin: 0; }
+                        .school-header { text-align: center; margin-bottom: 20px; }
+                        .school-logo { width: 80px; height: 80px; }
+                        .student-info { display: flex; justify-content: space-between; margin-bottom: 20px; }
+                        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+                        th, td { border: 1px solid #000; padding: 6px; text-align: center; }
+                        th { background-color: #f0f0f0; font-weight: bold; }
+                        .summary { margin-top: 20px; }
+                        .comments { margin-top: 20px; }
+                        .signatures { margin-top: 30px; display: flex; justify-content: space-between; }
+                        .page-break { page-break-before: always; }
+                        @media print { .page-break { page-break-before: always; } }
+                    </style>
+                </head>
+                <body>${allReportsHTML}</body>
+                </html>
+            `;
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(bulkHTML);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function generateBroadsheet() {
+            const year = document.getElementById('broadsheetYear').value;
+            const term = document.getElementById('broadsheetTerm').value;
+            const grade = document.getElementById('broadsheetGrade').value;
+            const examType = document.getElementById('broadsheetExamType').value;
+
+            if (!grade || !term || !examType) {
+                alert('Please select all parameters');
+                return;
+            }
+
+            const students = Object.values(schoolData.students).filter(s => s.grade === grade && s.year == year);
+            const subjects = schoolData.subjects[grade] || [];
+
+            if (students.length === 0) {
+                alert('No students found for the selected grade');
+                return;
+            }
+
+            // Generate sample data for broadsheet
+            const broadsheetData = students.map(student => {
+                const studentMarks = {};
+                let totalMarks = 0;
+                let totalPoints = 0;
+
+                subjects.forEach(subject => {
+                    const mark = Math.floor(Math.random() * 100);
+                    const gradeInfo = calculateGrade(mark);
+                    studentMarks[subject] = {
+                        mark: mark,
+                        pl: gradeInfo.pl,
+                        al: gradeInfo.al,
+                        points: gradeInfo.points
+                    };
+                    totalMarks += mark;
+                    totalPoints += gradeInfo.points;
+                });
+
+                const averageMark = totalMarks / subjects.length;
+                const finalGrade = calculateGrade(averageMark);
+
+                return {
+                    student: student,
+                    marks: studentMarks,
+                    totalMarks: totalMarks,
+                    averageMark: averageMark,
+                    totalPoints: totalPoints,
+                    finalPL: finalGrade.pl,
+                    finalAL: finalGrade.al
+                };
+            });
+
+            // Sort by total points (descending)
+            broadsheetData.sort((a, b) => b.totalPoints - a.totalPoints);
+
+            // Generate statistics
+            const genderStats = {
+                male: { EE: 0, ME: 0, AE: 0, BE: 0 },
+                female: { EE: 0, ME: 0, AE: 0, BE: 0 }
+            };
+
+            broadsheetData.forEach(data => {
+                const gender = data.student.gender.toLowerCase();
+                genderStats[gender][data.finalPL]++;
+            });
+
+            // Generate broadsheet HTML
+            const broadsheetHTML = generateBroadsheetHTML(year, term, grade, examType, subjects, broadsheetData, genderStats);
+            
+            // Display in the page
+            const resultsDiv = document.getElementById('broadsheetResults');
+            resultsDiv.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold">Broadsheet Analysis - ${grade} ${term} ${year}</h2>
+                        <button onclick="printBroadsheet()" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90">
+                            Print Broadsheet
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        ${broadsheetHTML}
+                    </div>
+                </div>
+            `;
+            resultsDiv.classList.remove('hidden');
+
+            // Store broadsheet HTML for printing
+            window.currentBroadsheetHTML = broadsheetHTML;
+        }
+
+        function generateBroadsheetHTML(year, term, grade, examType, subjects, data, genderStats) {
+            return `
+                <div class="broadsheet-content">
+                    <div class="school-header text-center mb-6">
+                        <img src="https://pfst.cf2.poecdn.net/base/image/a155debe19d01ae67292b8a930047cc3911675d503421d2c07cf7a2f73a6ab84?w=1024&h=1536" alt="School Logo" class="w-16 h-16 mx-auto mb-2">
+                        <h1 class="text-xl font-bold">RAMA SDA PRIMARY SCHOOL</h1>
+                        <p>P.O. BOX 45-50201, CHEPTAIS</p>
+                        <p class="font-bold">IN GOD WE CAN</p>
+                        <h2 class="text-lg font-bold mt-2">BROADSHEET ANALYSIS - ${examType} ${term} ${year}</h2>
+                        <h3 class="font-bold">Grade: ${grade}</h3>
+                    </div>
+
+                    <table class="w-full border-collapse border border-gray-300 mb-6">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="border border-gray-300 p-2">Rank</th>
+                                <th class="border border-gray-300 p-2">Name</th>
+                                <th class="border border-gray-300 p-2">Gender</th>
+                                ${subjects.map(subject => `
+                                    <th class="border border-gray-300 p-1 text-xs">${subject.substring(0, 8)}</th>
+                                `).join('')}
+                                <th class="border border-gray-300 p-2">Total</th>
+                                <th class="border border-gray-300 p-2">Average</th>
+                                <th class="border border-gray-300 p-2">Points</th>
+                                <th class="border border-gray-300 p-2">Final PL</th>
+                                <th class="border border-gray-300 p-2">Final AL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map((row, index) => `
+                                <tr>
+                                    <td class="border border-gray-300 p-2 text-center">${index + 1}</td>
+                                    <td class="border border-gray-300 p-2">${row.student.name}</td>
+                                    <td class="border border-gray-300 p-2 text-center">${row.student.gender}</td>
+                                    ${subjects.map(subject => `
+                                        <td class="border border-gray-300 p-1 text-xs text-center">
+                                            ${row.marks[subject].mark}<br>
+                                            <small>${row.marks[subject].pl}/${row.marks[subject].al}</small>
+                                        </td>
+                                    `).join('')}
+                                    <td class="border border-gray-300 p-2 text-center">${row.totalMarks}</td>
+                                    <td class="border border-gray-300 p-2 text-center">${row.averageMark.toFixed(1)}</td>
+                                    <td class="border border-gray-300 p-2 text-center">${row.totalPoints}</td>
+                                    <td class="border border-gray-300 p-2 text-center">${row.finalPL}</td>
+                                    <td class="border border-gray-300 p-2 text-center">${row.finalAL}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-bold mb-2">Gender Performance Analysis</h3>
+                            <table class="w-full border-collapse border border-gray-300">
+                                <thead>
+                                    <tr class="bg-gray-100">
+                                        <th class="border border-gray-300 p-2">Gender</th>
+                                        <th class="border border-gray-300 p-2">EE</th>
+                                        <th class="border border-gray-300 p-2">ME</th>
+                                        <th class="border border-gray-300 p-2">AE</th>
+                                        <th class="border border-gray-300 p-2">BE</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="border border-gray-300 p-2">Male</td>
+                                        <td class="border border-gray-300 p-2 text-center">${genderStats.male.EE}</td>
+                                        <td class="border border-gray-300 p-2 text-center">${genderStats.male.ME}</td>
+                                        <td class="border border-gray-300 p-2 text-center">${genderStats.male.AE}</td>
+                                        <td class="border border-gray-300 p-2 text-center">${genderStats.male.BE}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="border border-gray-300 p-2">Female</td>
+                                        <td class="border border-gray-300 p-2 text-center">${genderStats.female.EE}</td>
+                                        <td class="border border-gray-300 p-2 text-center">${genderStats.female.ME}</td>
+                                        <td class="border border-gray-300 p-2 text-center">${genderStats.female.AE}</td>
+                                        <td class="border border-gray-300 p-2 text-center">${genderStats.female.BE}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div>
+                            <h3 class="font-bold mb-2">Top Performers by Subject</h3>
+                            <div class="space-y-2">
+                                ${subjects.map(subject => {
+                                    const topPerformer = data.reduce((prev, current) => 
+                                        current.marks[subject].mark > prev.marks[subject].mark ? current : prev
+                                    );
+                                    return `<p><strong>${subject}:</strong> ${topPerformer.student.name} (${topPerformer.marks[subject].mark})</p>`;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function printBroadsheet() {
+            if (window.currentBroadsheetHTML) {
+                const printHTML = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>Broadsheet Analysis</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; font-size: 11px; margin: 0; padding: 15px; }
+                            .broadsheet { width: 297mm; padding: 15px; margin: 0; }
+                            .school-header { text-align: center; margin-bottom: 20px; }
+                            table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+                            th, td { border: 1px solid #000; padding: 4px; text-align: left; }
+                            th { background-color: #f0f0f0; font-weight: bold; }
+                            .text-center { text-align: center; }
+                            .font-bold { font-weight: bold; }
+                            .grid { display: flex; gap: 20px; }
+                            .grid > div { flex: 1; }
+                            @media print {
+                                body { margin: 0; padding: 10px; }
+                                .page-break { page-break-before: always; }
+                            }
+                        </style>
+                    </head>
+                    <body>${window.currentBroadsheetHTML}</body>
+                    </html>
+                `;
+
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(printHTML);
+                printWindow.document.close();
+                printWindow.print();
+            }
+        }
+
+        function loadParentResults() {
+            // Simulate loading parent's child results
+            const year = document.getElementById('resultsYear').value;
+            const term = document.getElementById('resultsTerm').value;
+            
+            // For demo, show sample results
+            const resultsArea = document.getElementById('parentResultsArea');
+            resultsArea.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                    <h2 class="text-xl font-bold mb-4">Results for ${currentUser.children ? currentUser.children[0] : 'Student'}</h2>
+                    <p class="text-center text-gray-500 dark:text-gray-400 py-8">
+                        Results will be available here once marks are entered by teachers.
+                        <br><br>
+                        Please check back later or contact the school for more information.
+                    </p>
+                </div>
+            `;
+        }
+
+        function respondToAnnouncement(announcementId) {
+            const response = prompt('Enter your response to this announcement:');
+            if (response) {
+                alert('Response submitted successfully!');
+                // In a real app, this would be saved to the database
+            }
+        }
+    </script>
+</body>
+</html>
